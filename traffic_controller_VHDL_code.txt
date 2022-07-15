@@ -1,0 +1,145 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity TRAFFIC is
+    Port (      
+                clk_in : in  STD_LOGIC;                       -- master clock input
+           		stby : in  STD_LOGIC:='0';                    
+            NEWS_Green : out  STD_LOGIC_VECTOR(3 DOWNTO 0);   --(North, South, East, West) Green lights
+              NEWS_Red : out  STD_LOGIC_VECTOR(3 DOWNTO 0);   --(North, South, East, West) Red lights
+           NEWS_Yellow : out  STD_LOGIC_VECTOR(3 DOWNTO 0)    --(North, South, East, West) Yellow lights
+           );           
+end TRAFFIC;
+
+architecture Behavioral of TRAFFIC is
+
+constant time1: integer:= 5;   
+constant time2: integer:= 1;    -- to be used in FSM
+
+type state is (YYYY,GRRR,YRRR,RGRR,RYRR,RRGR,RRYR,RRRG,RRRY);   --declaring states
+
+signal pr_state, nx_state: state;               -- previous and next states of FSM
+signal change_time: integer range 0 to time1;   -- it will give state change signals as per that state
+signal clk_out_buf: std_logic:='0';             -- lower frequency clock just to see visible effects
+				
+begin
+
+process(clk_in)     -- 100 MHz to 1 Hz just for visible light blinking
+variable count1: integer range 0 to 110000000:= 0;
+
+begin
+if (rising_edge(clk_in)) then
+	count1 := count1 + 1;
+end if;
+
+if (count1 = 100000000) then
+	count1 := 0;
+	clk_out_buf <= not clk_out_buf;
+end if;
+end process;
+
+
+process(clk_out_buf, stby)      -- assigns next state to previous state based on clk and stby input
+variable count2: integer range 0 to time1:=0;   -- is used to count clock cycles passed 
+
+begin
+
+if (stby = '1') then
+	pr_state <= YYYY;                -- standby mode
+	count2 := 0;
+elsif (rising_edge(clk_out_buf)) then
+	count2 := count2 + 1;
+	if (count2 = change_time) then
+		pr_state <= nx_state;
+		count2 := 0;
+	end if;
+end if;
+end process;
+
+
+
+
+
+process(pr_state)
+begin
+case pr_state is        -- case statement with all states
+	
+					
+	when GRRR =>
+					NEWS_Green <= "1000";   -- North Green ON, others Green OFF
+					NEWS_Red <= "0111";     -- North Red OFF, Others Red ON
+					NEWS_Yellow <= "0000";  -- All Yellows OFF
+					
+					nx_state <= YRRR;
+					change_time <= time1;
+
+	when YRRR =>
+					NEWS_Green <= "0000";
+                    NEWS_Red <= "0111";
+                    NEWS_Yellow <= "1000";
+                        
+					nx_state <= RGRR;
+					change_time <= time2;
+			
+	when RGRR =>
+					NEWS_Green <= "0100";
+                    NEWS_Red <= "1011";
+                    NEWS_Yellow <= "0000";
+                    
+					nx_state <= RYRR;
+					change_time <= time1;
+
+	when RYRR =>
+					NEWS_Green <= "0000";
+                    NEWS_Red <= "1011";
+                    NEWS_Yellow <= "0100";
+                        
+					nx_state <= RRGR;
+					change_time <= time2;
+
+	when RRGR =>
+					NEWS_Green <= "0010";
+                    NEWS_Red <= "1101";
+                    NEWS_Yellow <= "0000";
+                    
+					nx_state <= RRYR;
+					change_time <= time1;
+
+	when RRYR =>
+					NEWS_Green <= "0000";
+                    NEWS_Red <= "1101";
+                    NEWS_Yellow <= "0010";
+                        
+					nx_state <= RRRG;
+					change_time <= time2;
+
+	when RRRG =>
+					NEWS_Green <= "0001";
+                    NEWS_Red <= "1110";
+                    NEWS_Yellow <= "0000";
+					
+					nx_state <= RRRY;
+					change_time <= time1;
+
+	when RRRY =>
+					NEWS_Green <= "0000";
+                    NEWS_Red <= "1110";
+                    NEWS_Yellow <= "0001";
+                        
+					nx_state <= GRRR;
+					change_time <= time2;
+					
+	when YYYY =>
+					NEWS_Green <= "0000";
+                    NEWS_Red <= "0000";
+                    NEWS_Yellow <= "1111";
+                        
+					nx_state <= GRRR;
+					change_time <= time2; 
+					
+	when others =>
+					null;
+end case;
+
+end process;					
+end Behavioral;
