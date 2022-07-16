@@ -1,0 +1,13 @@
+# ucf file for the traffic controller program for nexys3 board 
+# PlanAhead Generated physical constraints 
+
+NET "NEWS_Green[3]" LOC = T11;
+NET "NEWS_Green[2]" LOC = R11;
+NET "NEWS_Green[1]" LOC = N11;
+NET "NEWS_Green[0]" LOC = M11;
+NET "NEWS_Yellow[3]" LOC = V15;
+NET "NEWS_Yellow[2]" LOC = U15;
+NET "NEWS_Yellow[1]" LOC = V16;
+NET "NEWS_Yellow[0]" LOC = U16;
+NET "clk_in" LOC = V10;
+NET "stby" LOC = T10;
